@@ -1,12 +1,12 @@
 % simulation script as used in Figure 2 of main paper 
 
-n=50;
+n=50;       %number of neurons
 steps=200;  % time-steps in one "iteration". each time-step is ~ 1 burst duration.
 
 
 beta = .25;	% global inhibition strength
 wmax=1;		% single synapse hard bound
-m=1;		% Wmax = m*wmax
+m=1;		% Wmax = m*wmax 
 pn=2;		 
 p=pn/n;		% probability of external stimulation of any neuron at any time
 eta=0.125;	% learning rate parameter	
@@ -14,6 +14,8 @@ epsilon=0.05;	% strength of heterosynaptic LTD
 tau=4;		% time-constant of neural adaptation (only used if alpha is not 0)
 alpha =0;	% strength of neural adaptation
 
+
+%initialize variables
 w=zeros(n); dw=zeros(n); dw2=zeros(n); dw3=zeros(n); 
 x = zeros(n,1);
 y=x;
@@ -22,8 +24,10 @@ s=zeros(1,steps);
 
 oldx=x;
 oldy=y;
+nIters=80;
 
-for iter=1:1000,
+
+for iter=1:nIters,
 	
 	oldw=w;
 
@@ -32,33 +36,69 @@ for iter=1:1000,
 		b = rand(n,1)>=(1-p);
 
 		binh = rand(n,1)>=(1-p);
-		y=oldy+1/tau*(-oldy+(oldx)+binh);
+		y=oldy+1/tau*(-oldy+(oldx)+binh); % y only has to do with neural adaptation.. 
+                                          % it can be ignored for cases of
+                                          % no adaptation
 
-		x = (w*oldx-beta*sum(oldx)+b-alpha*y)>0;
-		dw = eta*(x*double(oldx)'-double(oldx)*x'); 
-		dw2 = ones(n,1)*max(0, sum(w+dw,1)-m*wmax); 
-		dw3 = max(0, sum(w+dw,2)-m*wmax)*ones(1,n); 
-		w=min(wmax,max(0,w+dw-eta*epsilon*(dw2+dw3)-eye(n)*10000*wmax));
+        % calculate neural activity, x
+		x =...                          % neural activity
+            ( w*oldx ...                % weights times input frm old activity
+            -beta*sum(oldx)...          % global inhibition term
+            +b...                       % plus noise
+            -alpha*y)...                % neural adaptation term
+            >0;                     % neurons are only active when this 
+                                    % sum is greater than zero
+                                    
+        % STDP 
+		dw = eta*(x*double(oldx)'-double(oldx)*x');  %STDP
+        
+        %Heterosynaptic plasticity
+		dw2 = ones(n,1)*max(0, sum(w+dw,1)-m*wmax); %test to see whether sum of weights in each row is too great 
+		dw3 = max(0, sum(w+dw,2)-m*wmax)*ones(1,n); %test to see weather sum of weights in each column is too great
+        
+        %update the new weight matrix
+		w=min(wmax,...                  % any weight that exceeds wmax gets set to wmax
+            max(0,...                   % force any negative synapses to be zero
+            w+dw ...                    % update weight matrix based on STDP
+            -eta*epsilon*(dw2+dw3)...   % Heterosynaptic plasticity: penalize all those rows or colums whose sums exceeded the maximum synaptic weight
+            -eye(n)*10000*wmax));       % Zero out any synapses from one neuron to itself 
+                                        %   (remember that anything
+                                        %   negative is set to zero)
 
-		oldx = x;
-		oldy= y;  
-		xdyn(:,i)=x;
+		oldx = x;  % remember the old neural activity
+		oldy= y;   % remember the old adatation state (not important when no adaption in model)
+		xdyn(:,i)=x; % record a copy of the neural activity
 
 	end
 
-	subplot(2,2,1); 
+	subplot(2,3,1); 
 	imagesc(w,[0,wmax]); colormap(hot); colorbar
 	title('W'); xlabel('neuron index'); ylabel('neuron index');
-	subplot(2,2,2); 
+	
+    subplot(2,3,2); 
 	imagesc(w'*w,[0,wmax^2]); colormap(hot); colorbar
 	title('W^T*W'); xlabel('neuron index'); ylabel('neuron index');
-	subplot(2,2,3); 
+	
+    subplot(2,3,3);
+    hist(reshape(w,1,[]));
+    title('W')
+    ylabel('Counts')
+    xlabel('Weight')
+    
+    subplot(2,3,4); 
 	imagesc(w-oldw); colormap(hot); colorbar
 	title('change in W'); xlabel('neuron index'); ylabel('neuron index');
-	subplot(2,2,4); 
+	
+    
+    subplot(2,3,5); 
 	imagesc(xdyn); 
 	title('neural activity')
 	xlabel('time (steps)'); ylabel('neuron index');
+    
+    
+    
+    
+    
 	drawnow; 
 
 end
@@ -67,7 +107,7 @@ end
 %-----------------------------------------------------
 % playback of learned activiy sequences: 
 %-----------------------------------------------------
-
+figure;
 for iter=1:80,
 	
 	oldw=w;

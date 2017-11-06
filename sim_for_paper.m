@@ -24,7 +24,7 @@ s=zeros(1,steps);
 
 oldx=x;
 oldy=y;
-nIters=500; % 10000 in original paper
+nIters=150; % 10000 in original paper
 
 
 
@@ -89,7 +89,7 @@ for iter=1:nIters,
 
         subplot(2,4,3);
         imagesc(w(srtIndx,:))
-        title(['w sorted  iter=' num2str(iter)])
+        title(['w sorted  iter=' num2str(iter) ' of ' num2str(nIters)])
         ylabel('DIFFERENT (sorted) neuron index')
         xlabel('neuron index')
 
@@ -176,9 +176,9 @@ for iter=1:80,
 	imagesc(xdyn'*xdyn); 
 	title(['neural activity, iter =', num2str(iter)]); xlabel('neuron index'); ylabel('neuron index');
 	subplot(2,2,4); 
-	imagesc(xdyn); 
+	imagesc(xdyn(srtIndx,:)); 
 	title('neural activity')
-	xlabel(['time (steps), iter =', num2str(iter)]); ylabel('neuron index');
+	xlabel(['time (steps), iter =', num2str(iter)]); ylabel('neuron index (SORTED)');
 	drawnow; 
 end
 

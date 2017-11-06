@@ -24,9 +24,8 @@ s=zeros(1,steps);
 
 oldx=x;
 oldy=y;
-nIters=250; % 10000 in original paper
+nIters=150; % 10000 in original paper
 
-PlotEveryXSteps=10; %Default is 1
 
 
 for iter=1:nIters,
@@ -46,7 +45,7 @@ for iter=1:nIters,
             x =...                          % neural activity
             ( w*oldx ...                % weights times input frm old activity
             -beta*sum(oldx)...          % global inhibition term
-            +b...                       % plus noise
+            +b...                       % external stimulation
             -alpha*y)...                % neural adaptation term
             >0;                     % neurons are only active when this 
                                     % sum is greater than zero
@@ -78,39 +77,49 @@ for iter=1:nIters,
         
         
     end
-    if mod(iter,PlotEveryXSteps)==0
-        subplot(2,3,1); 
+
+        subplot(2,4,1); 
         imagesc(w,[0,wmax]); colormap(hot); colorbar
         title('W'); xlabel('neuron index'); ylabel('neuron index');
 
-        subplot(2,3,2); 
+        subplot(2,4,2); 
         imagesc(w'*w,[0,wmax^2]); colormap(hot); colorbar
         title('W^T*W'); xlabel('neuron index'); ylabel('neuron index');
 
-        subplot(2,3,3);
+        subplot(2,4,3);
+        imagesc(w(srtIndx,:))
+        title(['w sorted  iter=' num2str(iter)])
+        ylabel('DIFFERENT (sorted) neuron index')
+        xlabel('neuron index')
+
+        subplot(2,4,4);
         hist(reshape(w,1,[]));
         title('W')
         ylabel('Counts')
         xlabel('Weight')
 
-        subplot(2,3,4); 
+        
+        
+        subplot(2,4,5); 
         imagesc(w-oldw); colormap(hot); colorbar
         title('change in W'); xlabel('neuron index'); ylabel('neuron index');
 
 
-        subplot(2,3,5); 
+        subplot(2,4,6); 
         imagesc(xdyn); 
         title('neural activity')
         xlabel('time (steps)'); ylabel('neuron index');
 
 
-        subplot(2,3,6);
-        title(['w sorted  iter=' num2str(iter)])
-        imagesc(w(srtIndx,:))
+        subplot(2,4,7); 
+        imagesc(xdyn(srtIndx,:)); 
+        title('neural activity')
+        xlabel('time (steps)'); ylabel('SORTED neuron index (defined by weights)');
+
 
 
         drawnow; 
-    end
+    
 
 end
 

@@ -24,7 +24,7 @@ s=zeros(1,steps);
 
 oldx=x;
 oldy=y;
-nIters=150; % 10000 in original paper
+nIters=500; % 10000 in original paper
 
 
 
@@ -34,12 +34,13 @@ for iter=1:nIters,
 
 	for i = 1:steps
 
-		b = rand(n,1)>=(1-p);
+		b = rand(n,1)>=(1-p); % set the external stimulation
 
-		binh = rand(n,1)>=(1-p);
-		y=oldy+1/tau*(-oldy+(oldx)+binh); % y only has to do with neural adaptation.. 
+		%binh = rand(n,1)>=(1-p);            % not relevant
+		%y=oldy+1/tau*(-oldy+(oldx)+binh); % y only has to do with neural adaptation.. 
                                           % it can be ignored for cases of
                                           % no adaptation
+        y=0;
 
             % calculate neural activity, x
             x =...                          % neural activity
@@ -134,7 +135,7 @@ end
 figure;
 for iter=1:80,
 	
-	oldw=w;
+	oldw=w; % not relevant
 
 	for i = 1:steps
 
@@ -149,10 +150,12 @@ for iter=1:80,
 		b = rand(n,1)>=(1-p);
 		else
 		b=0*b; 
-		end
-
-		binh = rand(n,1)>=(1-p);
-		y=oldy+1/tau*(-oldy+(oldx)+binh);
+        end
+        
+        
+        %binh = rand(n,1)>=(1-p); % not relevant (adaptation)
+		%y=oldy+1/tau*(-oldy+(oldx)+binh); % not relevant (adaptation)
+        y=0;
 
 		x = (w*oldx-beta*sum(oldx)+b-alpha*y)>0;
 		

@@ -72,9 +72,43 @@ for iter=1:nIters,
 		xdyn(:,i)=x; % record a copy of the neural activity
 
         
-        %generate a sorted matrix for display purposes
-        [~,maxColByRow]=max(w,[],2); %for each row, find the column that has the highest wait
+        
+        % Andy's code:
+        %Generate indices for displaying a weight matrix that has sequences
+        %in it 
+        [~,maxColByRow]=max(w,[],2); %for each row, find the column that has the highest weight
         [~,srtIndx]=sort(maxColByRow); %sort those and record the indices
+        
+        
+        %Now, using ONLY the weight matrix, generate an ordering to display
+        %the neurons so that they also show sequences
+        bw=w>.5; %binarize w
+        playbacksrt=1;
+        
+        while ~isempty(setdiff(1:n,playbacksrt))
+            loc=find(bw(playbacksrt(end),:)==1); %find the first "1" element in W and store its location
+            if ~isempty(loc) % if we found something
+                if ~ismember(loc(1),playbacksrt) %if we haven't already found that neuron
+                    playbacksrt(end+1)=loc(1); % store it and move on
+                else
+                    %the chain is broken and the next neuron should be the first neuron that you
+                    %haven't looked at yet
+                    remainingNeurons=setdiff(1:n,playbacksrt);
+                    playbacksrt(end+1)=remainingNeurons(1);
+                end
+                  
+                
+            else
+                    %the chain is broken and the next neuron should be the first neuron that you
+                    %haven't looked at yet
+                    remainingNeurons=setdiff(1:n,playbacksrt);
+                    playbacksrt(end+1)=remainingNeurons(1);
+            end
+        end
+        
+       
+        
+    
         
         
     end
@@ -113,7 +147,7 @@ for iter=1:nIters,
 
 
         subplot(2,4,7); 
-        imagesc(xdyn(srtIndx,:)); 
+        imagesc(xdyn(playbacksrt',:)); 
         title('neural activity')
         xlabel('time (steps)'); ylabel('SORTED neuron index (defined by weights)');
 
@@ -128,7 +162,7 @@ end
 
 
 
-
+%%
 %-----------------------------------------------------
 % playback of learned activiy sequences: 
 %-----------------------------------------------------
@@ -141,15 +175,20 @@ for iter=1:80,
 
 		% 4 random bursts to initiate activity: 
 		if (iter<5),
-		b = rand(n,1)>=(1-p);
+            b = rand(n,1)>=(1-p);
+            DRIVENTEXT='Driving Activity ';
 		elseif (iter>20)&(iter<25),
-		b = rand(n,1)>=(1-p);
+            b = rand(n,1)>=(1-p);
+            DRIVENTEXT='Driving Activity ';
 		elseif (iter>40)&(iter<45),
-		b = rand(n,1)>=(1-p);
+            b = rand(n,1)>=(1-p);
+            DRIVENTEXT='Driving Activity ';
 		elseif (iter>60)&(iter<65),
-		b = rand(n,1)>=(1-p);
-		else
-		b=0*b; 
+            b = rand(n,1)>=(1-p);
+            DRIVENTEXT='Driving Activity ';
+        else
+            b=0*b; 
+            DRIVENTEXT='';
         end
         
         
@@ -159,6 +198,8 @@ for iter=1:80,
 
 		x = (w*oldx-beta*sum(oldx)+b-alpha*y)>0;
 		
+
+        
 		oldx = x;
 		oldy= y;  
 		xdyn(:,i)=x;
@@ -173,11 +214,11 @@ for iter=1:80,
 	imagesc(w'*w,[0,wmax^2]); colormap(hot); colorbar
 	title('W^T*W'); xlabel('neuron index'); ylabel('neuron index');
 	subplot(2,2,3); 
-	imagesc(xdyn'*xdyn); 
-	title(['neural activity, iter =', num2str(iter)]); xlabel('neuron index'); ylabel('neuron index');
-	subplot(2,2,4); 
-	imagesc(xdyn(srtIndx,:)); 
-	title('neural activity')
+	imagesc(xdyn'*xdyn); %this has got to be wrong.
+	title([DRIVENTEXT 'neural activity, iter =', num2str(iter)]); xlabel('neuron index'); ylabel('neuron index');
+    subplot(2,2,4); 
+	imagesc(xdyn(playbacksrt',:)); 
+	title([DRIVENTEXT 'neural activity'])
 	xlabel(['time (steps), iter =', num2str(iter)]); ylabel('neuron index (SORTED)');
 	drawnow; 
 end

@@ -24,7 +24,9 @@ s=zeros(1,steps);
 
 oldx=x;
 oldy=y;
-nIters=80;
+nIters=250; % 10000 in original paper
+
+PlotEveryXSteps=10; %Default is 1
 
 
 for iter=1:nIters,
@@ -40,8 +42,8 @@ for iter=1:nIters,
                                           % it can be ignored for cases of
                                           % no adaptation
 
-        % calculate neural activity, x
-		x =...                          % neural activity
+            % calculate neural activity, x
+            x =...                          % neural activity
             ( w*oldx ...                % weights times input frm old activity
             -beta*sum(oldx)...          % global inhibition term
             +b...                       % plus noise
@@ -69,39 +71,52 @@ for iter=1:nIters,
 		oldy= y;   % remember the old adatation state (not important when no adaption in model)
 		xdyn(:,i)=x; % record a copy of the neural activity
 
-	end
+        
+        %generate a sorted matrix for display purposes
+        [~,maxColByRow]=max(w,[],2); %for each row, find the column that has the highest wait
+        [~,srtIndx]=sort(maxColByRow); %sort those and record the indices
+        
+        
+    end
+    if mod(iter,PlotEveryXSteps)==0
+        subplot(2,3,1); 
+        imagesc(w,[0,wmax]); colormap(hot); colorbar
+        title('W'); xlabel('neuron index'); ylabel('neuron index');
 
-	subplot(2,3,1); 
-	imagesc(w,[0,wmax]); colormap(hot); colorbar
-	title('W'); xlabel('neuron index'); ylabel('neuron index');
-	
-    subplot(2,3,2); 
-	imagesc(w'*w,[0,wmax^2]); colormap(hot); colorbar
-	title('W^T*W'); xlabel('neuron index'); ylabel('neuron index');
-	
-    subplot(2,3,3);
-    hist(reshape(w,1,[]));
-    title('W')
-    ylabel('Counts')
-    xlabel('Weight')
-    
-    subplot(2,3,4); 
-	imagesc(w-oldw); colormap(hot); colorbar
-	title('change in W'); xlabel('neuron index'); ylabel('neuron index');
-	
-    
-    subplot(2,3,5); 
-	imagesc(xdyn); 
-	title('neural activity')
-	xlabel('time (steps)'); ylabel('neuron index');
-    
-    
-    
-    
-    
-	drawnow; 
+        subplot(2,3,2); 
+        imagesc(w'*w,[0,wmax^2]); colormap(hot); colorbar
+        title('W^T*W'); xlabel('neuron index'); ylabel('neuron index');
+
+        subplot(2,3,3);
+        hist(reshape(w,1,[]));
+        title('W')
+        ylabel('Counts')
+        xlabel('Weight')
+
+        subplot(2,3,4); 
+        imagesc(w-oldw); colormap(hot); colorbar
+        title('change in W'); xlabel('neuron index'); ylabel('neuron index');
+
+
+        subplot(2,3,5); 
+        imagesc(xdyn); 
+        title('neural activity')
+        xlabel('time (steps)'); ylabel('neuron index');
+
+
+        subplot(2,3,6);
+        title(['w sorted  iter=' num2str(iter)])
+        imagesc(w(srtIndx,:))
+
+
+        drawnow; 
+    end
 
 end
+
+
+
+
 
 
 %-----------------------------------------------------

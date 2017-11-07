@@ -1,4 +1,6 @@
 % simulation script as used in Figure 2 of main paper 
+%% Generate W matrix
+
 
 n=50;       %number of neurons
 steps=200;  % time-steps in one "iteration". each time-step is ~ 1 burst duration.
@@ -71,8 +73,12 @@ for iter=1:nIters,
 		oldy= y;   % remember the old adatation state (not important when no adaption in model)
 		xdyn(:,i)=x; % record a copy of the neural activity
 
+ 
         
         
+    end
+
+    
         % Andy's code:
         %Generate indices for displaying a weight matrix that has sequences
         %in it 
@@ -106,13 +112,15 @@ for iter=1:nIters,
             end
         end
         
-       
+        
+        
+        
+        
+        
+        
         
     
-        
-        
-    end
-
+    
         subplot(2,4,1); 
         imagesc(w,[0,wmax]); colormap(hot); colorbar
         title('W'); xlabel('neuron index'); ylabel('neuron index');
@@ -167,7 +175,8 @@ end
 % playback of learned activiy sequences: 
 %-----------------------------------------------------
 figure;
-for iter=1:80,
+Niter=80; %Ila used 80
+for iter=1:Niter, 
 	
 	oldw=w; % not relevant
 
